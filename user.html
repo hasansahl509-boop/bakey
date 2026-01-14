@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SweetBake - Cashier POS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #FFD166;
+            --secondary: #EF476F;
+            --light: #FFF9EC;
+            --dark: #5C3D2E;
+            --success: #06D6A0;
+            --warning: #FF9E00;
+            --danger: #EF476F;
+            --info: #118AB2;
+            --gray: #6c757d;
+            --light-gray: #f8f9fa;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --radius: 10px;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background-color: var(--dark);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .cashier-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .cashier-details {
+            text-align: right;
+        }
+
+        .cashier-details h3 {
+            font-size: 18px;
+        }
+
+        .cashier-details p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            margin-top: 70px;
+        }
+
+        /* ===== LEFT PANEL: PRODUCTS ===== */
+        .left-panel {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-right: 1px solid #ddd;
+        }
+
+        /* Product Categories */
+        .categories {
+            display: flex;
+            background-color: var(--light);
+            padding: 15px;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            background-color: white;
+            color: var(--dark);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .category-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .category-btn.active {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+
+        /* Product Search */
+        .product-search {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        /* Product Grid */
+        .products-grid {
+            flex-grow: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .product-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 120px;
+            background-color: var(--light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .product-img i {
+            font-size: 40px;
+            color: var(--dark);
+        }
+
+        .product-details {
+            flex-grow: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .product-category {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .product-stock {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .in-stock {
+            background-color: rgba(6, 214, 160, 0.2);
+            color: var(--success);
+        }
+
+        .low-stock {
+            background-color: rgba(255, 158, 0, 0.2);
+            color: var(--warning);
+        }
+
+        .out-stock {
+            background-color: rgba(239, 71, 111, 0.2);
+            color: var(--danger);
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary);
+            color: var(--dark);
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: #ffc843;
+        }
+
+        .add-to-cart-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* ===== RIGHT PANEL: CART & BILLING ===== */
+        .right-panel {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+        }
+
+        /* Current Sale Header */
+        .sale-header {
+            background-color: var(--dark);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sale-info h3 {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .sale-id {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .time-display {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* Cart Items */
+        .cart-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .cart-items {
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-img {
+            width: 50px;
+            height: 50px;
+            background-color: var(--light);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-item-details {
+            flex-grow: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-price {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .quantity-btn:hover {
+            background-color: var(--light);
+        }
+
+        .quantity-display {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .remove-item {
+            color: var(--danger);
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-cart i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        /* Bill Summary */
+        .bill-summary {
+            background-color: var(--light);
+            padding: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .bill-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .bill-total {
+            font-size: 18px;
+            font-weight: 700;
+            border-top: 2px solid #ddd;
+            padding-top: 15px;
+            margin-top: 10px;
+        }
+
+        .bill-total .amount {
+            color: var(--secondary);
+            font-size: 24px;
+        }
+
+        /* Payment Options */
+        .payment-options {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .payment-btn {
+            padding: 20px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .payment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .payment-btn i {
+            font-size: 24px;
+        }
+
+        .cash-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .card-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .upi-btn {
+            background-color: #6f42c1;
+            color: white;
+        }
+
+        .credit-btn {
+            background-color: #fd7e14;
+            color: white;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .new-bill-btn {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .hold-bill-btn {
+            background-color: var(--info);
+            color: white;
+        }
+
+        .void-bill-btn {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .return-btn {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        /* ===== MODALS ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            color: var(--dark);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* ===== RECEIPT STYLING ===== */
+        .receipt {
+            background-color: white;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            max-width: 300px;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .receipt-header h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .receipt-items {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .receipt-total {
+            border-top: 2px dashed #000;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                width: 100%;
+                height: 50%;
+            }
+            
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .categories {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+            
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <div class="logo">
+            <h1>🍰 SweetBake POS</h1>
+            <div class="cashier-info">
+                <div class="cashier-details">
+                    <h3>John Doe</h3>
+                    <p>Cashier ID: CASH001 | Shift: Morning</p>
+                </div>
+            </div>
+        </div>
+        
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+
+    <!-- ===== MAIN CONTAINER ===== -->
+    <div class="main-container">
+        <!-- ===== LEFT PANEL: PRODUCTS ===== -->
+        <div class="left-panel">
+            <!-- Categories -->
+            <div class="categories">
+                <button class="category-btn active" data-category="all">
+                    <i class="fas fa-th"></i> All Items
+                </button>
+                <button class="category-btn" data-category="bread">
+                    🥖 Breads
+                </button>
+                <button class="category-btn" data-category="cake">
+                    🍰 Cakes
+                </button>
+                <button class="category-btn" data-category="pastry">
+                    🥐 Pastries
+                </button>
+                <button class="category-btn" data-category="cookie">
+                    🍪 Cookies
+                </button>
+                <button class="category-btn" data-category="muffin">
+                    🧁 Muffins
+                </button>
+                <button class="category-btn" data-category="donut">
+                    🍩 Donuts
+                </button>
+                <button class="category-btn" data-category="beverage">
+                    ☕ Beverages
+                </button>
+            </div>
+
+            <!-- Product Search -->
+            <div class="product-search">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="productSearch" placeholder="Search products by name or barcode...">
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <!-- ===== RIGHT PANEL: CART & BILLING ===== -->
+        <div class="right-panel">
+            <!-- Current Sale Header -->
+            <div class="sale-header">
+                <div class="sale-info">
+                    <h3>Current Sale</h3>
+                    <div class="sale-id">Order #<span id="orderNumber">00123</span></div>
+                </div>
+                <div class="time-display">
+                    <i class="far fa-clock"></i> <span id="currentTime">10:30 AM</span>
+                </div>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="cart-container">
+                <div class="cart-items" id="cartItems">
+                    <!-- Cart items will appear here -->
+                    <div class="empty-cart" id="emptyCart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>Your cart is empty</h3>
+                        <p>Add items from the product list</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bill Summary -->
+            <div class="bill-summary">
+                <div class="bill-row">
+                    <span>Subtotal:</span>
+                    <span>₹<span id="subtotal">0.00</span></span>
+                </div>
+                <div class="bill-row">
+                    <span>Tax (5%):</span>
+                    <span>₹<span id="tax">0.00</span></span>
+                </div>
+                <div class="bill-row">
+                    <span>Discount:</span>
+                    <span>-₹<span id="discount">0.00</span></span>
+                </div>
+                <div class="bill-row bill-total">
+                    <span>TOTAL:</span>
+                    <span class="amount">₹<span id="total">0.00</span></span>
+                </div>
+            </div>
+
+            <!-- Payment Options -->
+            <div class="payment-options">
+                <button class="payment-btn cash-btn" onclick="processPayment('cash')">
+                    <i class="fas fa-money-bill-wave"></i>
+                    Cash
+                </button>
+                <button class="payment-btn card-btn" onclick="processPayment('card')">
+                    <i class="fas fa-credit-card"></i>
+                    Card
+                </button>
+                <button class="payment-btn upi-btn" onclick="processPayment('upi')">
+                    <i class="fas fa-mobile-alt"></i>
+                    UPI
+                </button>
+                <button class="payment-btn credit-btn" onclick="processPayment('credit')">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    Credit
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn new-bill-btn" onclick="newBill()">
+                    <i class="fas fa-receipt"></i> New Bill
+                </button>
+                <button class="action-btn hold-bill-btn" onclick="holdBill()">
+                    <i class="fas fa-pause"></i> Hold
+                </button>
+                <button class="action-btn void-bill-btn" onclick="voidBill()">
+                    <i class="fas fa-ban"></i> Void
+                </button>
+                <button class="action-btn return-btn" onclick="returnItem()">
+                    <i class="fas fa-undo"></i> Return
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+
+    <!-- Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Customer Details</h3>
+                <button class="close-modal" onclick="closeModal('customerModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="customerName" class="form-control" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="customerPhone" class="form-control" placeholder="For loyalty points">
+                </div>
+                <button class="btn" onclick="skipCustomer()">Skip</button>
+                <button class="btn btn-primary" onclick="saveCustomer()">Save & Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="paymentTitle">Cash Payment</h3>
+                <button class="close-modal" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Total Amount: <strong>₹<span id="paymentTotal">0.00</span></strong></label>
+                </div>
+                <div class="form-group" id="cashPaymentSection">
+                    <label>Amount Received</label>
+                    <input type="number" id="amountReceived" class="form-control" placeholder="Enter amount received">
+                    <p id="changeAmount" style="margin-top: 10px; font-weight: bold;"></p>
+                </div>
+                <div class="form-group" id="upiSection" style="display: none;">
+                    <label>UPI ID / QR Code</label>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=your-merchant@upi&pn=SweetBake&am=100&tn=Bill" 
+                             alt="QR Code" style="width: 150px; height: 150px; margin-bottom: 15px;">
+                        <p>Scan to pay with any UPI app</p>
+                        <p style="font-size: 12px; color: #666;">UPI ID: sweetbake@icici</p>
+                    </div>
+                </div>
+                <div class="form-group" id="cardSection" style="display: none;">
+                    <label>Card Details</label>
+                    <input type="text" class="form-control" placeholder="Card Number" style="margin-bottom: 10px;">
+                    <input type="text" class="form-control" placeholder="MM/YY" style="margin-bottom: 10px;">
+                    <input type="text" class="form-control" placeholder="CVV">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('paymentModal')">Cancel</button>
+                <button class="btn btn-success" onclick="completePayment()">Complete Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Payment Successful!</h3>
+                <button class="close-modal" onclick="closeModal('receiptModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="receipt" id="receiptContent">
+                    <!-- Receipt content will be generated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="printReceipt()">
+                    <i class="fas fa-print"></i> Print Receipt
+                </button>
+                <button class="btn btn-primary" onclick="closeModal('receiptModal'); newBill();">
+                    <i class="fas fa-check"></i> Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hold Bill Modal -->
+    <div id="holdModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Hold Bill</h3>
+                <button class="close-modal" onclick="closeModal('holdModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Reference Name</label>
+                    <input type="text" id="holdReference" class="form-control" placeholder="e.g., Table 5, Customer Name">
+                </div>
+                <p>Bill will be saved and can be retrieved later.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('holdModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveHoldBill()">Save Bill</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== SAMPLE DATA =====
+        const bakeryProducts = [
+            {id: 1, name: "Croissant", category: "pastry", price: 45, stock: 15, icon: "🥐", status: "in-stock"},
+            {id: 2, name: "Chocolate Donut", category: "donut", price: 35, stock: 25, icon: "🍩", status: "in-stock"},
+            {id: 3, name: "Blueberry Muffin", category: "muffin", price: 55, stock: 8, icon: "🧁", status: "low-stock"},
+            {id: 4, name: "Red Velvet Cake", category: "cake", price: 450, stock: 3, icon: "🍰", status: "low-stock"},
+            {id: 5, name: "Whole Wheat Bread", category: "bread", price: 40, stock: 12, icon: "🥖", status: "in-stock"},
+            {id: 6, name: "Butter Cookies", category: "cookie", price: 120, stock: 18, icon: "🍪", status: "in-stock"},
+            {id: 7, name: "Bagel", category: "bread", price: 50, stock: 0, icon: "🥯", status: "out-stock"},
+            {id: 8, name: "Cappuccino", category: "beverage", price: 80, stock: 30, icon: "☕", status: "in-stock"},
+            {id: 9, name: "Chocolate Chip Cookie", category: "cookie", price: 25, stock: 22, icon: "🍪", status: "in-stock"},
+            {id: 10, name: "Cheese Danish", category: "pastry", price: 65, stock: 10, icon: "🥐", status: "in-stock"},
+            {id: 11, name: "Black Forest Cake", category: "cake", price: 550, stock: 5, icon: "🍰", status: "in-stock"},
+            {id: 12, name: "French Baguette", category: "bread", price: 75, stock: 7, icon: "🥖", status: "low-stock"}
+        ];
+
+        // ===== GLOBAL VARIABLES =====
+        let cart = [];
+        let currentOrder = {
+            id: generateOrderId(),
+            items: [],
+            subtotal: 0,
+            tax: 0,
+            total: 0,
+            customer: null,
+            payment: null,
+            timestamp: new Date()
+        };
+        let selectedCategory = 'all';
+        let currentPaymentMethod = 'cash';
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 60000); // Update time every minute
+            
+            loadProducts();
+            updateCartDisplay();
+            
+            // Event listeners
+            document.getElementById('productSearch').addEventListener('input', searchProducts);
+            
+            // Category buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedCategory = this.dataset.category;
+                    loadProducts();
+                });
+            });
+        });
+
+        // ===== PRODUCT MANAGEMENT =====
+        function loadProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+            
+            let filteredProducts = bakeryProducts;
+            
+            // Filter by category
+            if (selectedCategory !== 'all') {
+                filteredProducts = bakeryProducts.filter(p => p.category === selectedCategory);
+            }
+            
+            // Filter by search
+            const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+            if (searchTerm) {
+                filteredProducts = filteredProducts.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) || 
+                    p.category.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Display products
+            filteredProducts.forEach(product => {
+                const productCard = createProductCard(product);
+                grid.appendChild(productCard);
+            });
+        }
+
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.dataset.id = product.id;
+            
+            const stockClass = product.status === 'in-stock' ? 'in-stock' : 
+                             product.status === 'low-stock' ? 'low-stock' : 'out-stock';
+            const stockText = product.status === 'in-stock' ? `Stock: ${product.stock}` :
+                            product.status === 'low-stock' ? `Low Stock: ${product.stock}` : 'Out of Stock';
+            
+            card.innerHTML = `
+                <div class="product-img">
+                    <span style="font-size: 40px;">${product.icon}</span>
+                </div>
+                <div class="product-details">
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-category">${product.category.toUpperCase()}</div>
+                    <div class="product-price">₹${product.price}</div>
+                    <div class="product-stock ${stockClass}">${stockText}</div>
+                </div>
+                <button class="add-to-cart-btn" onclick="addToCart(${product.id})" 
+                        ${product.status === 'out-stock' ? 'disabled' : ''}>
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
+            `;
+            
+            return card;
+        }
+
+        function searchProducts() {
+            loadProducts();
+        }
+
+        // ===== CART MANAGEMENT =====
+        function addToCart(productId) {
+            const product = bakeryProducts.find(p => p.id === productId);
+            
+            if (!product) return;
+            
+            // Check if product already in cart
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                // Update quantity if in stock
+                if (existingItem.quantity < product.stock) {
+                    existingItem.quantity++;
+                } else {
+                    alert(`Only ${product.stock} ${product.name}(s) available in stock!`);
+                    return;
+                }
+            } else {
+                // Add new item to cart
+                if (product.stock > 0) {
+                    cart.push({
+                        ...product,
+                        quantity: 1
+                    });
+                } else {
+                    alert(`${product.name} is out of stock!`);
+                    return;
+                }
+            }
+            
+            updateCartDisplay();
+            updateBillSummary();
+        }
+
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            const emptyCart = document.getElementById('emptyCart');
+            
+            if (cart.length === 0) {
+                emptyCart.style.display = 'block';
+                cartItemsContainer.innerHTML = '';
+                cartItemsContainer.appendChild(emptyCart);
+                return;
+            }
+            
+            emptyCart.style.display = 'none';
+            
+            let cartHTML = '';
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                cartHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-img">
+                            <span style="font-size: 24px;">${item.icon}</span>
+                        </div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">₹${item.price} × ${item.quantity} = ₹${itemTotal}</div>
+                        </div>
+                        <div class="cart-item-controls">
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                            <span class="quantity-display">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                            <span class="remove-item" onclick="removeFromCart(${item.id})">
+                                <i class="fas fa-trash"></i>
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItemsContainer.innerHTML = cartHTML;
+        }
+
+        function updateQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            const product = bakeryProducts.find(p => p.id === productId);
+            
+            if (!item || !product) return;
+            
+            const newQuantity = item.quantity + change;
+            
+            if (newQuantity < 1) {
+                removeFromCart(productId);
+                return;
+            }
+            
+            if (newQuantity > product.stock) {
+                alert(`Only ${product.stock} ${product.name}(s) available in stock!`);
+                return;
+            }
+            
+            item.quantity = newQuantity;
+            updateCartDisplay();
+            updateBillSummary();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartDisplay();
+            updateBillSummary();
+        }
+
+        function updateBillSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.05; // 5% tax
+            const total = subtotal + tax;
+            
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('tax').textContent = tax.toFixed(2);
+            document.getElementById('total').textContent = total.toFixed(2);
+            
+            // Update current order
+            currentOrder.items = cart;
+            currentOrder.subtotal = subtotal;
+            currentOrder.tax = tax;
+            currentOrder.total = total;
+        }
+
+        // ===== ORDER MANAGEMENT =====
+        function generateOrderId() {
+            return 'ORD' + Math.floor(10000 + Math.random() * 90000);
+        }
+
+        function newBill() {
+            if (cart.length > 0) {
+                if (!confirm('Start new bill? Current items will be cleared.')) {
+                    return;
+                }
+            }
+            
+            cart = [];
+            currentOrder = {
+                id: generateOrderId(),
+                items: [],
+                subtotal: 0,
+                tax: 0,
+                total: 0,
+                customer: null,
+                payment: null,
+                timestamp: new Date()
+            };
+            
+            document.getElementById('orderNumber').textContent = currentOrder.id.slice(-5);
+            updateCartDisplay();
+            updateBillSummary();
+            loadProducts();
+        }
+
+        function holdBill() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+            
+            openModal('holdModal');
+        }
+
+        function saveHoldBill() {
+            const reference = document.getElementById('holdReference').value || 'Unnamed Bill';
+            
+            // In real app, save to database
+            alert(`Bill held with reference: ${reference}`);
+            closeModal('holdModal');
+            newBill();
+        }
+
+        function voidBill() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+            
+            if (confirm('Void this bill? This action cannot be undone.')) {
+                newBill();
+            }
+        }
+
+        function returnItem() {
+            alert('Return functionality would open here. In a real app, you would scan the original receipt.');
+        }
+
+        // ===== PAYMENT PROCESSING =====
+        function processPayment(method) {
+            if (cart.length === 0) {
+                alert('Cart is empty! Add items before payment.');
+                return;
+            }
+            
+            currentPaymentMethod = method;
+            const paymentTotal = currentOrder.total;
+            
+            document.getElementById('paymentTotal').textContent = paymentTotal.toFixed(2);
+            document.getElementById('paymentTitle').textContent = 
+                method.charAt(0).toUpperCase() + method.slice(1) + ' Payment';
+            
+            // Show/hide relevant sections
+            document.getElementById('cashPaymentSection').style.display = method === 'cash' ? 'block' : 'none';
+            document.getElementById('upiSection').style.display = method === 'upi' ? 'block' : 'none';
+            document.getElementById('cardSection').style.display = method === 'card' ? 'block' : 'none';
+            
+            openModal('paymentModal');
+            
+            // Focus on amount received field for cash
+            if (method === 'cash') {
+                setTimeout(() => {
+                    document.getElementById('amountReceived').focus();
+                }, 100);
+            }
+        }
+
+        function calculateChange() {
+            const received = parseFloat(document.getElementById('amountReceived').value) || 0;
+            const total = currentOrder.total;
+            
+            if (received >= total) {
+                const change = received - total;
+                document.getElementById('changeAmount').textContent = `Change: ₹${change.toFixed(2)}`;
+                return change;
+            } else {
+                document.getElementById('changeAmount').textContent = `Insufficient: Need ₹${(total - received).toFixed(2)} more`;
+                return -1;
+            }
+        }
+
+        document.getElementById('amountReceived').addEventListener('input', calculateChange);
+
+        function completePayment() {
+            if (currentPaymentMethod === 'cash') {
+                const change = calculateChange();
+                if (change < 0) {
+                    alert('Amount received is less than total amount!');
+                    return;
+                }
+            }
+            
+            // Ask for customer details
+            openModal('customerModal');
+            closeModal('paymentModal');
+        }
+
+        function skipCustomer() {
+            completeSale();
+        }
+
+        function saveCustomer() {
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            
+            currentOrder.customer = { name, phone };
+            completeSale();
+        }
+
+        function completeSale() {
+            // In real app, save order to database
+            
+            // Generate receipt
+            generateReceipt();
+            
+            // Close customer modal if open
+            closeModal('customerModal');
+            
+            // Show receipt
+            openModal('receiptModal');
+            
+            // Update product stock (in real app, this would be done via API)
+            cart.forEach(cartItem => {
+                const product = bakeryProducts.find(p => p.id === cartItem.id);
+                if (product) {
+                    product.stock -= cartItem.quantity;
+                    if (product.stock <= 3) {
+                        product.status = 'low-stock';
+                    }
+                    if (product.stock === 0) {
+                        product.status = 'out-stock';
+                    }
+                }
+            });
+            
+            // Reset for next sale (but keep receipt open)
+            currentOrder.payment = {
+                method: currentPaymentMethod,
+                amount: currentOrder.total,
+                timestamp: new Date()
+            };
+        }
+
+        function generateReceipt() {
+            const receipt = document.getElementById('receiptContent');
+            const now = new Date();
+            
+            let receiptHTML = `
+                <div class="receipt-header">
+                    <h2>SWEETBAKE BAKERY</h2>
+                    <p>123 Bakery Street, City</p>
+                    <p>Phone: 9876543210</p>
+                    <p>GSTIN: 22AAAAA0000A1Z5</p>
+                </div>
+                
+                <div style="text-align: center; margin: 15px 0;">
+                    <p>Order: ${currentOrder.id}</p>
+                    <p>${now.toLocaleDateString()} ${now.toLocaleTimeString()}</p>
+                    <p>Cashier: John Doe</p>
+                </div>
+                
+                <div class="receipt-items">
+            `;
+            
+            currentOrder.items.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                receiptHTML += `
+                    <div class="receipt-item">
+                        <div>
+                            ${item.name} x${item.quantity}
+                        </div>
+                        <div>₹${itemTotal.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+            
+            receiptHTML += `
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <div class="receipt-item">
+                        <div>Subtotal:</div>
+                        <div>₹${currentOrder.subtotal.toFixed(2)}</div>
+                    </div>
+                    <div class="receipt-item">
+                        <div>Tax (5%):</div>
+                        <div>₹${currentOrder.tax.toFixed(2)}</div>
+                    </div>
+                    <div class="receipt-item" style="font-weight: bold;">
+                        <div>TOTAL:</div>
+                        <div>₹${currentOrder.total.toFixed(2)}</div>
+                    </div>
+                    <div class="receipt-item">
+                        <div>Payment:</div>
+                        <div>${currentPaymentMethod.toUpperCase()}</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px; font-size: 12px;">
+                    <p>Thank you for your visit!</p>
+                    <p>** Please keep this receipt for returns **</p>
+                </div>
+            `;
+            
+            receipt.innerHTML = receiptHTML;
+        }
+
+        function printReceipt() {
+            const receiptContent = document.getElementById('receiptContent').innerHTML;
+            const printWindow = window.open('', '', 'width=400,height=600');
+            
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Receipt - ${currentOrder.id}</title>
+                        <style>
+                            body { font-family: 'Courier New', monospace; padding: 20px; }
+                            .receipt { max-width: 300px; }
+                            .receipt-header { text-align: center; margin-bottom: 20px; }
+                            .receipt-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                            @media print { 
+                                body { margin: 0; padding: 10px; }
+                                button { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${receiptContent}
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                                setTimeout(function() {
+                                    window.close();
+                                }, 1000);
+                            };
+                        <\/script>
+                    </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function logout() {
+            if (cart.length > 0) {
+                if (!confirm('You have items in cart. Logout anyway?')) {
+                    return;
+                }
+            }
+            
+            // In real app, clear session and redirect
+            alert('Logging out...');
+            window.location.href = 'login.html'; // Redirect to login page
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // F1 - New Bill
+            if (e.key === 'F1' || (e.ctrlKey && e.key === 'n')) {
+                e.preventDefault();
+                newBill();
+            }
+            
+            // F2 - Cash Payment
+            if (e.key === 'F2' || (e.ctrlKey && e.key === 'c')) {
+                e.preventDefault();
+                processPayment('cash');
+            }
+            
+            // F3 - Card Payment
+            if (e.key === 'F3' || (e.ctrlKey && e.key === 'd')) {
+                e.preventDefault();
+                processPayment('card');
+            }
+            
+            // F4 - Search focus
+            if (e.key === 'F4' || (e.ctrlKey && e.key === 'f')) {
+                e.preventDefault();
+                document.getElementById('productSearch').focus();
+            }
+            
+            // Escape - Close modals
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    if (modal.style.display === 'flex') {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
